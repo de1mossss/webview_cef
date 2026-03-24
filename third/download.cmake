@@ -11,9 +11,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     endif()
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     message(STATUS "[webview_cef] current system is Windows")
-    set(cef_prebuilt_path "https://github.com/hlwhl/webview_cef/releases/download/prebuilt_cef_bin_linux/webview_cef_bin_0.0.2_101.0.18+chromium-101.0.4951.67_windows64.zip")
-    set(cef_prebuilt_version "webview_cef_bin_0.0.2_101.0.18+chromium-101.0.4951.67_windows64")
-    set(cef_prebuilt_ext ".zip")
+    set(cef_prebuilt_path "https://cef-builds.spotifycdn.com/cef_binary_130.1.2%2Bg48f3ef6%2Bchromium-130.0.6723.44_windows64.tar.bz2")
+    set(cef_prebuilt_version "cef_binary_130.1.2%2Bg48f3ef6%2Bchromium-130.0.6723.44_windows64.tar.bz2")
+    set(cef_prebuilt_ext ".tar.bz2")
 endif()
 set(cef_prebuilt_version_path "https://github.com/hlwhl/webview_cef/releases/download/prebuilt_cef_bin_linux/version.txt")
 
@@ -108,7 +108,11 @@ function(prepare_prebuilt_files filepath)
 
     if(need_download)
         message(STATUS "[webview_cef] Downloading and extracting CEF binaries...")
-        file(REMOVE_RECURSE ${filepath}/cmake ${filepath}/Debug ${filepath}/Release ${filepath}/Resources ${filepath}/include ${filepath}/libcef_dll ${filepath}/libcef_dll_wrapper)
+        # Remove both old custom-zip dirs (lowercase) and official CEF dirs (capitalized)
+        file(REMOVE_RECURSE
+            ${filepath}/cmake ${filepath}/Debug ${filepath}/Release ${filepath}/Resources
+            ${filepath}/include ${filepath}/libcef_dll ${filepath}/libcef_dll_wrapper
+            ${filepath}/debug ${filepath}/release ${filepath}/resources)
 
         set(archive_file "${CMAKE_CURRENT_SOURCE_DIR}/prebuilt${cef_prebuilt_ext}")
         download_file(${cef_prebuilt_path} ${archive_file})
