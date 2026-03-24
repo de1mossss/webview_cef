@@ -561,6 +561,7 @@ namespace webview_cef {
 		CefSettings cefs;
 		cefs.windowless_rendering_enabled = true;
 		cefs.no_sandbox = true;
+		cefs.remote_debugging_port = 9222;
 		if(!userAgent.empty()){
 			CefString(&cefs.user_agent_product) = userAgent;
 		}

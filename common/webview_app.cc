@@ -107,6 +107,9 @@ void WebviewApp::OnBeforeCommandLineProcessing(const CefString &process_type, Ce
 		{
 			command_line->AppendSwitch("disable-gpu");
 			command_line->AppendSwitch("disable-gpu-compositing");
+			command_line->AppendSwitchWithValue("use-gl", "swiftshader");
+			command_line->AppendSwitchWithValue("use-angle", "swiftshader");
+			command_line->AppendSwitch("disable-gpu-sandbox");
 		}
 
 		command_line->AppendSwitch("disable-web-security");                                     //disable web security
