@@ -644,9 +644,17 @@ void WebviewHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect &rect) {
 }
 
 bool WebviewHandler::GetScreenInfo(CefRefPtr<CefBrowser> browser, CefScreenInfo& screen_info) {
-    //todo: hi dpi support
-    screen_info.device_scale_factor  = browser_map_[browser->GetIdentifier()].dpi;
-    return false;
+    auto it = browser_map_.find(browser->GetIdentifier());
+    if (it == browser_map_.end() || !it->second.browser.get() || browser->IsPopup()) {
+        return false;
+    }
+    screen_info.device_scale_factor = it->second.dpi;
+    screen_info.rect.x = 0;
+    screen_info.rect.y = 0;
+    screen_info.rect.width = it->second.width;
+    screen_info.rect.height = it->second.height;
+    screen_info.available_rect = screen_info.rect;
+    return true;
 }
 
 void WebviewHandler::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type,
