@@ -72,14 +72,25 @@ target_include_directories(${PLUGIN_NAME} PRIVATE
 # Build libcef_dll_wrapper from source (official CEF package includes source)
 ADD_LOGICAL_TARGET("libcef_lib" "${CEF_LIB_DEBUG}" "${CEF_LIB_RELEASE}")
 SET_CEF_TARGET_OUT_DIR()
-add_subdirectory(${CEF_LIBCEF_DLL_WRAPPER_PATH} libcef_dll_wrapper)
 
-# Force libcef_dll_wrapper to use /MD (dynamic runtime) to match Flutter.
-# CEF defaults to /MT which causes linker conflicts with Flutter's /MD.
+# Force /MD (dynamic runtime) to match Flutter. CEF cmake hardcodes /MT in
+# compiler flags which causes LNK2038 "RuntimeLibrary mismatch" with Flutter.
+# Replace /MT→/MD in all flag variables BEFORE add_subdirectory so that
+# libcef_dll_wrapper inherits /MD.
 if(MSVC)
-  set_property(TARGET libcef_dll_wrapper PROPERTY
-    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+  foreach(flag_var
+      CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+      CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO
+      CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
+      CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO
+      CEF_COMPILER_FLAGS CEF_COMPILER_FLAGS_DEBUG CEF_COMPILER_FLAGS_RELEASE)
+    if(${flag_var})
+      string(REPLACE "/MT" "/MD" ${flag_var} "${${flag_var}}")
+    endif()
+  endforeach()
 endif()
+
+add_subdirectory(${CEF_LIBCEF_DLL_WRAPPER_PATH} libcef_dll_wrapper)
 
 add_dependencies(${PLUGIN_NAME} libcef_dll_wrapper)
 target_link_libraries(${PLUGIN_NAME} PRIVATE flutter flutter_wrapper_plugin
