@@ -580,13 +580,8 @@ void WebviewHandler::sendJavaScriptChannelCallBack(const bool error, const std::
 
         CefRefPtr<CefFrame> frame = bit->second.browser->GetMainFrame();
 
-        // Return types for frame->GetIdentifier() changed, use the Linux way when updating MacOS or Windows
-        // versions in download.cmake
-#if __linux__
+        // CEF 130: GetIdentifier() returns CefString, not int64
         bool identifierMatch = std::stoll(frame->GetIdentifier().ToString()) == frameIdInt;
-#else
-        bool identifierMatch = frame->GetIdentifier() == frameIdInt;
-#endif
         if (identifierMatch)
         {
             frame->SendProcessMessage(PID_RENDERER, message);
