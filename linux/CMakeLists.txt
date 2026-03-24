@@ -16,7 +16,9 @@ execute_process(
   COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/target_modifier/modify_target.sh"
   OUTPUT_VARIABLE patch_output
 )
-message(WARNING "${patch_output}")
+if(patch_output)
+  message(STATUS "[webview_cef] ${patch_output}")
+endif()
 
 # Setup CEF
 include(${CMAKE_CURRENT_SOURCE_DIR}/../third/download.cmake)
