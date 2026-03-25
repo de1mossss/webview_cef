@@ -37,33 +37,41 @@ Flutter webview backed by CEF (Chromium Embedded Framework)
     CEF_DIR="third/cef"
     FW_DIR="${CEF_DIR}/Chromium Embedded Framework.framework"
 
-    if [ -d "${FW_DIR}/Versions/A" ]; then
+    # Check if framework is fully set up (binary + top-level symlinks)
+    if [ -f "${FW_DIR}/Versions/A/Chromium Embedded Framework" ] && [ -L "${FW_DIR}/Chromium Embedded Framework" ]; then
       echo "[webview_cef] CEF framework already present, skipping download"
       exit 0
     fi
 
-    echo "[webview_cef] Downloading CEF 130 macOS arm64 minimal..."
-    curl -L -o /tmp/cef_macos.tar.bz2 "${CEF_URL}"
+    # If Versions/A exists but symlinks are missing, skip download but fix symlinks
+    if [ -f "${FW_DIR}/Versions/A/Chromium Embedded Framework" ]; then
+      echo "[webview_cef] CEF binary present but symlinks missing, fixing..."
+    else
+      echo "[webview_cef] Downloading CEF 130 macOS arm64 minimal..."
+      curl -L -o /tmp/cef_macos.tar.bz2 "${CEF_URL}"
 
-    echo "[webview_cef] Extracting..."
-    mkdir -p /tmp/cef_macos_extract
-    tar xf /tmp/cef_macos.tar.bz2 -C /tmp/cef_macos_extract
+      echo "[webview_cef] Extracting..."
+      mkdir -p /tmp/cef_macos_extract
+      tar xf /tmp/cef_macos.tar.bz2 -C /tmp/cef_macos_extract
 
-    CEF_SRC=$(ls -d /tmp/cef_macos_extract/cef_binary_*)
-    SRC_FW="${CEF_SRC}/Release/Chromium Embedded Framework.framework"
+      CEF_SRC=$(ls -d /tmp/cef_macos_extract/cef_binary_*)
+      SRC_FW="${CEF_SRC}/Release/Chromium Embedded Framework.framework"
 
-    echo "[webview_cef] Creating deep bundle structure..."
-    mkdir -p "${FW_DIR}/Versions/A"
-    cp "${SRC_FW}/Chromium Embedded Framework" "${FW_DIR}/Versions/A/"
-    cp -R "${SRC_FW}/Libraries" "${FW_DIR}/Versions/A/"
-    cp -R "${SRC_FW}/Resources" "${FW_DIR}/Versions/A/"
+      echo "[webview_cef] Creating deep bundle structure..."
+      mkdir -p "${FW_DIR}/Versions/A"
+      cp "${SRC_FW}/Chromium Embedded Framework" "${FW_DIR}/Versions/A/"
+      cp -R "${SRC_FW}/Libraries" "${FW_DIR}/Versions/A/"
+      cp -R "${SRC_FW}/Resources" "${FW_DIR}/Versions/A/"
+
+      echo "[webview_cef] Cleaning up..."
+      rm -rf /tmp/cef_macos.tar.bz2 /tmp/cef_macos_extract
+    fi
+
+    # Ensure symlinks (always, even if binary was already present)
     cd "${FW_DIR}/Versions" && ln -sf A Current
     cd "${FW_DIR}" && ln -sf "Versions/Current/Chromium Embedded Framework" "Chromium Embedded Framework"
     cd "${FW_DIR}" && ln -sf Versions/Current/Libraries Libraries
     cd "${FW_DIR}" && ln -sf Versions/Current/Resources Resources
-
-    echo "[webview_cef] Cleaning up..."
-    rm -rf /tmp/cef_macos.tar.bz2 /tmp/cef_macos_extract
 
     echo "[webview_cef] CEF framework ready"
   SCRIPT
